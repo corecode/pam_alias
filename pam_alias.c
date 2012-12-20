@@ -122,7 +122,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		}
 
 		char *from = strtok_r(line, " \t\n", &saveptr);
-		char *to = strtok_r(line, " \t\n", &saveptr);
+		char *to = strtok_r(NULL, " \t\n", &saveptr);
 
 		if (!from)
 			continue;
@@ -193,7 +193,7 @@ pam_sm_setcred(pam_handle_t *pamh, int flags,
 }
 
 int
-pam_sm_acct_mgmgt(pam_handle_t *pamh, int flags,
+pam_sm_acct_mgmt(pam_handle_t *pamh, int flags,
 		  int argc, const char **argv)
 {
 	return (pam_sm_authenticate(pamh, flags, argc, argv));
