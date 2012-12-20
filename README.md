@@ -32,4 +32,6 @@ For more details, see the pam_alias(8) manual page.
 Author
 ------
 
-Simon Schubert <2@0x2c.org>
+Copyright (c) 2012 Simon Schubert <2@0x2c.org>
+
+pam_alias is licensed under the GPL3 or later.
