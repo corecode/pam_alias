@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+	"http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<refentry id="pam_alias">
+
+  <refmeta>
+    <refentrytitle>pam_alias</refentrytitle>
+    <manvolnum>8</manvolnum>
+    <refmiscinfo class="sectdesc">Linux-PAM Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv id="pam_alias-name">
+    <refname>pam_alias</refname>
+    <refpurpose>map user names using an arbitrary file</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis id="pam_alias-cmdsynopsis">
+      <command>pam_alias.so</command>
+      <arg choice="plain">
+        file=<replaceable>/path/filename</replaceable>
+      </arg>
+      <arg choice="opt">
+        nomatch=[fail|ignore]
+      </arg>
+      <arg choice="opt">
+        debug
+      </arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+  <refsect1 id="pam_alias-description">
+
+    <title>DESCRIPTION</title>
+
+    <para>
+      pam_alias is a PAM module which provides a way to map user names
+      using an arbitrary file.
+    </para>
+    <para>
+      The module looks up the user name (PAM_USER) in the file
+      specified by
+      <option>file=<replaceable>filename</replaceable></option>.
+      Every line in <filename>filename</filename> contains a pair of
+      user names, separated by whitespace; pam_alias will map from the
+      first user name to the second.  The mapping is done by changing
+      the PAM_USER item, which is then typically used by other PAM
+      modules.
+    </para>
+    <para>
+      If a matching user name is found,
+      <emphasis>PAM_IGNORE</emphasis> is returned; if no match could
+      be found, the behavior depends on the <option>nomatch</option>
+      option.  If
+      <option>nomatch=<replaceable>fail</replaceable></option>,
+      pam_alias will return <emphasis>PAM_AUTH_ERR</emphasis>.  If
+      <option>nomatch=<replaceable>ignore</replaceable></option> (the
+      default), pam_alias will return <emphasis>PAM_IGNORE</emphasis>
+      as in the successful case; however, no replacement will have
+      taken place.
+    </para>
+    <para>
+      If a configuration error is encountered (for example, if
+      <filename>filename</filename> can not be opened, its access
+      permissions seem unsafe, or if invalid arguments are passed to
+      pam_alias), then <emphasis>PAM_SERVICE_ERR</emphasis> will be
+      returned.
+    </para>
+    <para>
+      No credentials are awarded by this module.
+    </para>
+  </refsect1>
+
+  <refsect1 id="pam_alias-options">
+
+    <title>OPTIONS</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>
+            <option>file=<replaceable>/path/filename</replaceable></option>
+          </term>
+          <listitem>
+            <para>
+              File containing a pair of user names per line, separated
+	      by whitespace.  The first name specifies the user name
+	      to be matched, the second name the user name will be
+	      replaced with.  The file may not be world writable.
+            </para>
+          </listitem>
+	</varlistentry>
+
+        <varlistentry>
+          <term>
+            <option>nomatch=[fail|ignore]</option>
+          </term>
+          <listitem>
+            <para>
+              What to do if no user name could be matched.  Default is
+              <replaceable>ignore</replaceable>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>
+            <option>debug</option>
+          </term>
+          <listitem>
+            <para>
+	      Log additional debugging information.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </para>
+  </refsect1>
+
+  <refsect1 id="pam_alias-types">
+    <title>MODULE TYPES PROVIDED</title>
+    <para>
+      All module types (<option>auth</option>, <option>account</option>,
+      <option>password</option> and <option>session</option>) are provided.
+    </para>
+  </refsect1>
+
+  <refsect1 id='pam_alias-return_values'>
+    <title>RETURN VALUES</title>
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <term>PAM_AUTH_ERR</term>
+          <listitem>
+            <para>Authentication failure.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_IGNORE</term>
+          <listitem>
+            <para>
+              Mapping was successful, or
+              <option>nomatch=<replaceable>ignore</replaceable></option>.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>PAM_SERVICE_ERR</term>
+          <listitem>
+            <para>
+	      Error in service module.
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+  </refsect1>
+
+  <refsect1 id='pam_alias-examples'>
+    <title>EXAMPLES</title>
+    <para>
+      pam_alias was written for use in multidomain setups that intend
+      to use PAM as authentication provider.  Specifically, pam_alias
+      is used to map ejabberd jids to local unix users for
+      authentication.
+
+      On top of <filename>/etc/pam.d/ejabberd</filename>:
+      <programlisting>
+#
+# map specific ejabberd jids to local users
+#
+auth    required       pam_alias.so file=/etc/secure/jidmap
+      </programlisting>
+
+      <filename>/etc/secure/jidmap</filename>:
+      <programlisting>
+# lines starting with hash are ignored
+foo@sub.example.org    loclfoo
+      </programlisting>
+
+      This will map an authentication request for
+      <emphasis>foo@sub.example.org</emphasis> to the user name
+      <emphasis>loclfoo</emphasis>, which will then in turn be used by
+      the subsequent PAM modules.
+    </para>
+  </refsect1>
+
+  <refsect1 id='pam_alias-see_also'>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>pam.conf</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam.d</refentrytitle><manvolnum>5</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam_listfile</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>pam</refentrytitle><manvolnum>8</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+  <refsect1 id='pam_alias-author'>
+    <title>AUTHOR</title>
+      <para>
+        pam_alias was written by Simon Schubert &lt;2@0x2c.org&gt;.
+      </para>
+  </refsect1>
+
+</refentry>
