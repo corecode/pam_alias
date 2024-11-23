@@ -84,6 +84,15 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		}
 	}
 
+	char *user;
+	int rv;
+	if ((rv = pam_get_item(pamh, PAM_USER, (void *)&user)) != PAM_SUCCESS) {
+	      pam_syslog(pamh, LOG_ERR,
+			 "Cannot obtain current pam user: %s",
+			 pam_strerror(pamh, rv));
+	      goto fail;
+	}
+
 	if (!aliasfn) {
 		pam_syslog(pamh, LOG_ERR,
 			   "Alias filename not specified");
@@ -103,6 +112,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		pam_syslog(pamh, LOG_ERR,
 			   "Cannot stat %s",
 			   aliasfn);
+		fclose(aliasf);
 		goto fail;
 	}
 
@@ -110,15 +120,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		pam_syslog(pamh, LOG_ALERT,
 			   "Insecure permissions on %s",
 			   aliasfn);
-		goto fail;
-	}
-
-	char *user;
-	int rv;
-	if ((rv = pam_get_item(pamh, PAM_USER, (void *)&user)) != PAM_SUCCESS) {
-		pam_syslog(pamh, LOG_ERR,
-			   "Cannot obtain current pam user: %s",
-			   pam_strerror(pamh, rv));
+		fclose(aliasf);
 		goto fail;
 	}
 
@@ -171,6 +173,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 			pam_syslog(pamh, LOG_INFO,
 				   "matched user alias \"%s\" to \"%s\"",
 				   from, to);
+			fclose(aliasf);
 			if (pam_set_item(pamh, PAM_USER, to) != PAM_SUCCESS) {
 				pam_syslog(pamh, LOG_ERR,
 					   "Cannot set pam user to \"%s\": %s",
@@ -193,6 +196,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 			return (PAM_IGNORE);
 		}
 	}
+	fclose(aliasf);
 
 	switch (nomatch) {
 	case NOMATCH_IGNORE:
